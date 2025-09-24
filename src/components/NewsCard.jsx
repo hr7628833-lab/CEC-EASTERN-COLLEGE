@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, Heart, X } from "lucide-react";
+import { Calendar, Heart } from "lucide-react";
 
 function NewsCard({ organization, content, date, type, image, title, liked, toggleLike }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -21,9 +21,9 @@ function NewsCard({ organization, content, date, type, image, title, liked, togg
           />
         </button>
 
-        {/* Image */}
+        {/* Image (click to expand) */}
         {image && (
-          <div className="overflow-hidden">
+          <div className="overflow-hidden cursor-pointer" onClick={() => setModalOpen(true)}>
             <img
               src={image}
               alt={title}
@@ -73,25 +73,28 @@ function NewsCard({ organization, content, date, type, image, title, liked, togg
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-lg max-w-lg w-full p-6 relative">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-lg max-w-3xl w-full p-6 relative">
             
-            {/* Close Button */}
+            {/* Close Button (top-right) */}
             <button
-              onClick={() => setModalOpen(false)}
-              className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100 transition"
-            >
-             
-            </button>
+  onClick={() => setModalOpen(false)}
+  className="absolute -top-4 -right-4 bg-white text-gray-700 shadow-lg 
+             hover:bg-red-500 hover:text-white transition rounded-full 
+             w-10 h-10 flex items-center justify-center text-xl"
+>
+  ✕
+</button>
 
-            {/* Modal Content */}
+            {/* Expanded Image */}
             {image && (
               <img
                 src={image}
                 alt={title}
-                className="w-full h-52 object-cover rounded-lg mb-4"
+                className="w-full max-h-[80vh] object-contain rounded-lg mb-4"
               />
             )}
+
             <h2 className="text-2xl font-bold text-gray-800 mb-2">{title}</h2>
             <p className="text-gray-600 text-sm mb-4">{content}</p>
             
@@ -103,21 +106,6 @@ function NewsCard({ organization, content, date, type, image, title, liked, togg
                 <Calendar size={14} className="text-blue-500" />
                 {new Date(date).toLocaleDateString()}
               </span>
-            </div>
-
-            {/* Gradient Close Button at bottom */}
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={() => setModalOpen(false)}
-                type="button"
-                className="text-white bg-gradient-to-br from-red-500 to-pink-500 
-                           hover:bg-gradient-to-bl focus:ring-4 focus:outline-none 
-                           focus:ring-red-300 dark:focus:ring-red-800 
-                           font-medium rounded-lg text-sm px-5 py-2.5 text-center 
-                           transition-all"
-              >
-                Close
-              </button>
             </div>
           </div>
         </div>
