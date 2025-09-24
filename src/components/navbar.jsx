@@ -9,7 +9,7 @@ function Navbar({ newsData }) {
   const [orgDropdown, setOrgDropdown] = useState(false); // organization dropdown
 
   return (
-    <nav className="bg-[#093FB4] shadow-md fixed top-0 left-0 w-full z-50">
+    <nav className="bg-[#093FB4] shadow-md fixed top-0 left-0 w-full z-50 transition">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo + School Name */}
@@ -19,44 +19,41 @@ function Navbar({ newsData }) {
               alt="CEC Logo"
               className="h-10 w-10 object-cover rounded-full border-2 border-white shadow-md"
             />
-            <span className="text-2xl font-bold text-white">
+            <span className="text-2xl font-bold text-white hover:text-gray-200 transition">
               CEBU EASTERN COLLEGE
             </span>
           </div>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-8 items-center relative">
-            {/* Organization Dropdown (Click-to-Toggle) */}
+            {/* Organization Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setOrgDropdown(!orgDropdown)}
-                className="inline-flex items-center gap-x-1.5 rounded-md bg-white/10 px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-white/20 hover:bg-white/20"
+                className="inline-flex items-center gap-x-1.5 rounded-md bg-white/10 px-3 py-2 
+                           text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-white/20 
+                           hover:bg-white/20 transition"
               >
                 Organization
-                <ChevronDown className="-mr-1 h-5 w-5 text-gray-300" />
+                <ChevronDown
+                  className={`-mr-1 h-5 w-5 text-gray-300 transition-transform duration-300 ${
+                    orgDropdown ? "rotate-180" : ""
+                  }`}
+                />
               </button>
 
               {orgDropdown && (
-                <div className="absolute left-0 mt-2 w-56 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-white/10 z-50">
+                <div className="absolute left-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-gray-200 z-50 animate-fadeIn">
                   <div className="py-1">
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white"
-                    >
-                      Org Sub 1
-                    </a>
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white"
-                    >
-                      Org Sub 2
-                    </a>
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white"
-                    >
-                      Org Sub 3
-                    </a>
+                    {["Org Sub 1", "Org Sub 2", "Org Sub 3"].map((org) => (
+                      <a
+                        key={org}
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
+                      >
+                        {org}
+                      </a>
+                    ))}
                   </div>
                 </div>
               )}
@@ -65,12 +62,15 @@ function Navbar({ newsData }) {
             {/* Calendar Button */}
             <button
               onClick={() => setCalendarOpen(true)}
-              className="text-white hover:text-gray-200 flex items-center"
+              className="text-white hover:text-blue-200 transition font-medium"
             >
               Calendar
             </button>
 
-            <a href="#" className="text-white hover:text-gray-200">
+            <a
+              href="#"
+              className="text-white hover:text-blue-200 transition font-medium"
+            >
               About
             </a>
           </div>
@@ -79,7 +79,7 @@ function Navbar({ newsData }) {
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-white hover:text-gray-200 focus:outline-none"
+              className="text-white hover:text-gray-200 focus:outline-none transition"
             >
               {isOpen ? (
                 <span className="text-2xl">&times;</span>
@@ -93,17 +93,16 @@ function Navbar({ newsData }) {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white shadow-lg">
+        <div className="md:hidden bg-white shadow-lg animate-slideDown">
           <button
             onClick={() => setCalendarOpen(true)}
-            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
           >
-            Calendar ▾
+            Calendar
           </button>
-
           <a
             href="#"
-            className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+            className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
           >
             About
           </a>

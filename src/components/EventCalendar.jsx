@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 function EventCalendar({ newsEventsData, onClose }) {
   const today = new Date();
@@ -9,6 +9,26 @@ function EventCalendar({ newsEventsData, onClose }) {
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const startDay = firstDayOfMonth.getDay();
+
+  // ✅ Move to previous month
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  // ✅ Move to next month
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
 
   const getEventStatus = (date) => {
     const news = newsEventsData.find(
@@ -25,13 +45,34 @@ function EventCalendar({ newsEventsData, onClose }) {
       <div className="bg-white rounded-xl shadow-lg w-[700px]">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b bg-blue-600 text-white rounded-t-xl">
-          <h2 className="text-lg font-bold">Event Calendar & Schedule</h2>
           <button
-            onClick={onClose}
-            className="p-1 rounded-full hover:bg-red-100 transition"
+            onClick={handlePrevMonth}
+            className="p-2 rounded-full hover:bg-blue-500 transition"
           >
-            <X className="w-6 h-6 text-white hover:text-red-600" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
+
+          <h2 className="text-lg font-bold">
+            {new Date(currentYear, currentMonth).toLocaleString("default", {
+              month: "long",
+              year: "numeric",
+            })}
+          </h2>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleNextMonth}
+              className="p-2 rounded-full hover:bg-blue-500 transition"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-full hover:bg-red-100 transition"
+            >
+              <X className="w-6 h-6 text-white hover:text-red-600" />
+            </button>
+          </div>
         </div>
 
         {/* Calendar */}
@@ -51,7 +92,7 @@ function EventCalendar({ newsEventsData, onClose }) {
               return (
                 <div
                   key={i}
-                  className={`h-14 flex items-center justify-center border rounded ${getEventStatus(
+                  className={`h-14 flex items-center justify-center border rounded cursor-pointer hover:bg-gray-100 transition ${getEventStatus(
                     date
                   )}`}
                 >
