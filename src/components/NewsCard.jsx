@@ -25,8 +25,11 @@ function NewsCard({ organization, content, date, type, image, title, liked, togg
     general: "bg-gray-100 text-gray-700 border border-gray-300",
   };
 
+  // Unique ID based on the date for scrolling
+  const cardId = `post-${new Date(date).toISOString().slice(0, 10)}`;
+
   return (
-    <div className="w-full max-w-sm mx-auto">
+    <div id={cardId} className="w-full max-w-sm mx-auto mb-6">
       {/* Card content */}
       <div className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition overflow-hidden flex flex-col relative">
         <button onClick={toggleLike} className="absolute top-3 right-3 z-10 bg-white/90 p-2 rounded-full shadow-md hover:bg-gray-100">
