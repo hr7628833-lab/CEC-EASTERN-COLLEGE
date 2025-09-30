@@ -1,17 +1,6 @@
 import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-/**
- * Usage:
- * <Dropdown>
- *   <DropdownButton outline>Options</DropdownButton>
- *   <DropdownMenu>
- *     <DropdownItem href="/x">View</DropdownItem>
- *     <DropdownItem onClick={() => ...}>Delete</DropdownItem>
- *   </DropdownMenu>
- * </Dropdown>
- */
-
 export function Dropdown({ children }) {
   const [open, setOpen] = useState(false);
 
