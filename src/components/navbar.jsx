@@ -4,9 +4,8 @@ import { ChevronDown } from "lucide-react";
 import logo from "../assets/cec.jpg";
 import EventCalendar from "./EventCalendar";
 
-function Navbar({ newsData, newsDetailOpen }) {
+function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [calendarOpen, setCalendarOpen] = useState(false);
   const [orgDropdown, setOrgDropdown] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
@@ -20,34 +19,29 @@ function Navbar({ newsData, newsDetailOpen }) {
 
   const location = useLocation();
 
-  // ✅ Scroll detection (never hide navbar if news detail is open)
+  // Scroll detection
   useEffect(() => {
     const handleScroll = () => {
       if (newsDetailOpen) {
-        setShowNavbar(true); // always show navbar when news detail is open
-        return; // skip all scroll logic
+        setShowNavbar(true);
+        return;
       }
-
-      // Normal scroll hide/show logic only when news detail is not open
       if (window.scrollY > lastScrollY && window.scrollY > 50) {
-        setShowNavbar(false); // scrolling down
+        setShowNavbar(false);
       } else {
-        setShowNavbar(true); // scrolling up
+        setShowNavbar(true);
       }
       setLastScrollY(window.scrollY);
       setScrolled(window.scrollY > 50);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY, newsDetailOpen]);
 
-  // ✅ Force navbar visible whenever newsDetailOpen changes
   useEffect(() => {
     if (newsDetailOpen) setShowNavbar(true);
   }, [newsDetailOpen]);
 
-  // Reset navbar on route change
   useEffect(() => {
     setShowNavbar(true);
     setLastScrollY(window.scrollY);
@@ -61,15 +55,18 @@ function Navbar({ newsData, newsDetailOpen }) {
         calendarButtonRef.current &&
         !calendarRef.current.contains(event.target) &&
         !calendarButtonRef.current.contains(event.target)
-      )
+      ) {
         setCalendarOpen(false);
+      }
 
-      if (aboutRef.current && !aboutRef.current.contains(event.target)) setAboutOpen(false);
-      if (orgRef.current && !orgRef.current.contains(event.target)) setOrgDropdown(false);
+      if (aboutRef.current && !aboutRef.current.contains(event.target))
+        setAboutOpen(false);
+      if (orgRef.current && !orgRef.current.contains(event.target))
+        setOrgDropdown(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [setCalendarOpen]);
 
   return (
     <nav
@@ -219,6 +216,7 @@ function Navbar({ newsData, newsDetailOpen }) {
             </Link>
           )}
 
+          {/* Calendar Dropdown */}
           <button
             onClick={() => setCalendarOpen((prev) => !prev)}
             className="w-full text-left px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition"
