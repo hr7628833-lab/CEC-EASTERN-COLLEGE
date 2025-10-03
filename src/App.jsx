@@ -8,7 +8,6 @@ import Footer from "./components/Footer.jsx";
 import EventCalendar from "./components/EventCalendar.jsx";
 import HistoryPage from "./page/HistoryPage.jsx";
 import MissionPage from "./page/MissionPage.jsx";
-import cec_mainpage from "./assets/cec-mainpage.jpg";
 
 // ScrollToTop Component
 function ScrollToTop({ newsDetailOpen }) {
@@ -86,7 +85,7 @@ function App() {
               <div
                 id="header-section"
                 className="relative text-center bg-cover bg-center bg-no-repeat w-full"
-                style={{ backgroundImage: `url(${cec_mainpage})` }}
+                style={{ backgroundImage: `url(/cec-mainpage.jpg)` }} // FIXED
               >
                 <div className="absolute inset-0 bg-black/40"></div>
                 <div className="relative z-10 py-25 px-6 sm:px-12 max-w-5xl mx-auto">
@@ -111,7 +110,7 @@ function App() {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }} // Faster animation
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
                       className="w-full"
                     >
                       <NewsCard
