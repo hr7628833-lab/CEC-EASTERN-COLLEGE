@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
-import Navbar from "./components/navbar.jsx";
+import Navbar from "./components/Navbar.jsx";
 import NewsCard from "./components/NewsCard.jsx";
 import Footer from "./components/Footer.jsx";
 import EventCalendar from "./components/EventCalendar.jsx";
-import HistoryPage from "./page/HistoryPage.jsx";
-import MissionPage from "./page/MissionPage.jsx";
-import cec_mainpage from "./assets/cec-mainpage.jpg";
+import HistoryPage from "./pages/HistoryPage.jsx";
+import MissionPage from "./pages/MissionPage.jsx";
+import cec_mainpage from "./assets/cec-mainpage.jpg"; // imported asset
 
 // ScrollToTop Component
 function ScrollToTop({ newsDetailOpen }) {
@@ -39,8 +39,7 @@ function App() {
 
   // Likes
   const [likes, setLikes] = useState({});
-  const toggleLike = (id) =>
-    setLikes((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleLike = (id) => setLikes((prev) => ({ ...prev, [id]: !prev[id] }));
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,10 +56,8 @@ function App() {
     }
   }, [currentPage, newsDetailOpen]);
 
-  const handlePrevPage = () =>
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  const handleNextPage = () =>
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const handleNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   const handlePageClick = (pageNumber) => setCurrentPage(pageNumber);
 
   // Calendar dropdown toggle
@@ -78,24 +75,24 @@ function App() {
       />
 
       <Routes>
-        {/* News Page */}
+        {/* Main Page */}
         <Route
           path="/"
           element={
             <>
-              <div
-                id="header-section"
-                className="relative text-center bg-cover bg-center bg-no-repeat w-full"
-                style={{ backgroundImage: `url(/cec-mainpage.jpg)` }} // FIXED
-              >
-                <div className="absolute inset-0 bg-black/40"></div>
-                <div className="relative z-10 py-25 px-6 sm:px-12 max-w-5xl mx-auto">
-                  <motion.h1
-                    className="text-6xl font-extrabold text-white drop-shadow-lg"
-                    style={{ fontFamily: "Garamond, serif" }}
-                    initial={{ opacity: 0, y: -50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1 }}
+           <div
+  id="header-section"
+  className="relative text-center bg-cover bg-center bg-no-repeat w-full h-[400px] sm:h-[450px] md:h-[500px] lg:h-[250px]"
+  style={{ backgroundImage: `url(${cec_mainpage})` }}
+>
+  <div className="absolute inset-0 bg-black/40"></div>
+  <div className="relative z-10 py-24 px-6 sm:px-12 max-w-5xl mx-auto flex items-center justify-center h-full">
+    <motion.h1
+      className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg"
+      style={{ fontFamily: "Garamond, serif" }}
+      initial={{ opacity: 0, y: -50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1 }}
                   >
                     News and Updates
                   </motion.h1>
