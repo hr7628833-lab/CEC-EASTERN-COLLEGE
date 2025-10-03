@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import logo from "../assets/cec.jpg";
 import EventCalendar from "./EventCalendar";
 
+
 function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
   const [isOpen, setIsOpen] = useState(false);
   const [orgDropdown, setOrgDropdown] = useState(false);

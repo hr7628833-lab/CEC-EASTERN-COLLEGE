@@ -8,6 +8,7 @@ import Footer from "./components/Footer.jsx";
 import EventCalendar from "./components/EventCalendar.jsx";
 import HistoryPage from "./page/HistoryPage.jsx";
 import MissionPage from "./page/MissionPage.jsx";
+import cec_mainpage from "./assets/cec-mainpage.jpg";
 
 // ScrollToTop Component
 function ScrollToTop({ newsDetailOpen }) {
