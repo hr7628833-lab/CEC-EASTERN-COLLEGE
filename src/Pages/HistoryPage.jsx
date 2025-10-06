@@ -37,7 +37,7 @@ function HistoryPage() {
         </section>
       </main>
 
-      <Footer />
+    
     </div>
   );
 }

@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
-import Navbar from "./components/Navbar.jsx";
+import Navbar from "./components/navbar.jsx";
 import NewsCard from "./components/NewsCard.jsx";
 import Footer from "./components/Footer.jsx";
 import EventCalendar from "./components/EventCalendar.jsx";
-import HistoryPage from "./pages/HistoryPage.jsx";
-import MissionPage from "./pages/MissionPage.jsx";
+import HistoryPage from "./Pages/HistoryPage.jsx";
+import MissionPage from "./Pages/MissionPage.jsx";
 import cec_mainpage from "./assets/cec-mainpage.jpg"; // imported asset
 
 // ScrollToTop Component
@@ -24,6 +24,17 @@ function ScrollToTop({ newsDetailOpen }) {
 function App() {
   const [newsDetailOpen, setNewsDetailOpen] = useState(false);
 
+  // ✅ Load likes and counts from localStorage
+  const [likes, setLikes] = useState(() => {
+    const storedLikes = localStorage.getItem("likes");
+    return storedLikes ? JSON.parse(storedLikes) : {};
+  });
+
+  const [likeCounts, setLikeCounts] = useState(() => {
+    const storedCounts = localStorage.getItem("likeCounts");
+    return storedCounts ? JSON.parse(storedCounts) : {};
+  });
+
   // Global news data
   const [newsData] = useState(
     Array.from({ length: 15 }, (_, i) => ({
@@ -37,9 +48,27 @@ function App() {
     }))
   );
 
-  // Likes
-  const [likes, setLikes] = useState({});
-  const toggleLike = (id) => setLikes((prev) => ({ ...prev, [id]: !prev[id] }));
+  // ✅ Like toggle logic — starts at 1, returns to 0
+  const toggleLike = (id) => {
+    setLikes((prevLikes) => {
+      const isLiked = !prevLikes[id];
+      const newLikes = { ...prevLikes, [id]: isLiked };
+
+      setLikeCounts((prevCounts) => {
+        const newCounts = { ...prevCounts };
+        if (isLiked) {
+          newCounts[id] = 1; // first click starts at 1
+        } else {
+          newCounts[id] = 0; // unliked → 0
+        }
+        localStorage.setItem("likeCounts", JSON.stringify(newCounts));
+        return newCounts;
+      });
+
+      localStorage.setItem("likes", JSON.stringify(newLikes));
+      return newLikes;
+    });
+  };
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -80,19 +109,19 @@ function App() {
           path="/"
           element={
             <>
-           <div
-  id="header-section"
-  className="relative text-center bg-cover bg-center bg-no-repeat w-full h-[400px] sm:h-[450px] md:h-[500px] lg:h-[250px]"
-  style={{ backgroundImage: `url(${cec_mainpage})` }}
->
-  <div className="absolute inset-0 bg-black/40"></div>
-  <div className="relative z-10 py-24 px-6 sm:px-12 max-w-5xl mx-auto flex items-center justify-center h-full">
-    <motion.h1
-      className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg"
-      style={{ fontFamily: "Garamond, serif" }}
-      initial={{ opacity: 0, y: -50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1 }}
+              <div
+                id="header-section"
+                className="relative text-center bg-cover bg-center bg-no-repeat w-full h-[400px] sm:h-[450px] md:h-[500px] lg:h-[250px]"
+                style={{ backgroundImage: `url(${cec_mainpage})` }}
+              >
+                <div className="absolute inset-0 bg-black/40"></div>
+                <div className="relative z-10 py-24 px-6 sm:px-12 max-w-5xl mx-auto flex items-center justify-center h-full">
+                  <motion.h1
+                    className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg"
+                    style={{ fontFamily: "Garamond, serif" }}
+                    initial={{ opacity: 0, y: -50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1 }}
                   >
                     News and Updates
                   </motion.h1>
@@ -114,6 +143,7 @@ function App() {
                       <NewsCard
                         {...news}
                         liked={!!likes[news.id]}
+                        likeCount={likeCounts[news.id] || 0} // ✅ default 0
                         toggleLike={() => toggleLike(news.id)}
                         setDetailOpen={setNewsDetailOpen}
                       />
