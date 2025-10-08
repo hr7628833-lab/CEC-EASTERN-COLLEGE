@@ -26,22 +26,22 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
         setShowNavbar(true);
         return;
       }
-
       if (window.scrollY > lastScrollY && window.scrollY > 50) setShowNavbar(false);
       else setShowNavbar(true);
 
       setLastScrollY(window.scrollY);
       setScrolled(window.scrollY > 50);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY, newsDetailOpen]);
 
+  // Keep navbar open for news detail
   useEffect(() => {
     if (newsDetailOpen) setShowNavbar(true);
   }, [newsDetailOpen]);
 
+  // Reset states on route change
   useEffect(() => {
     setShowNavbar(true);
     setLastScrollY(window.scrollY);
@@ -51,33 +51,65 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
     setIsOpen(false);
   }, [location.pathname, setCalendarOpen]);
 
-  // Outside click
+  // ---------- Unified outside-tap handler ----------
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        calendarRef.current &&
-        calendarButtonRef.current &&
-        !calendarRef.current.contains(event.target) &&
-        !calendarButtonRef.current.contains(event.target)
-      ) setCalendarOpen(false);
-
-      if (aboutRef.current && !aboutRef.current.contains(event.target)) setAboutOpen(false);
-      if (orgRef.current && !orgRef.current.contains(event.target)) setOrgDropdown(false);
+    // Handler: if the tap/click is inside an element marked with [data-no-close], ignore it.
+    // Otherwise close all dropdowns.
+    const handler = (event) => {
+      const el = event.target instanceof Element ? event.target : null;
+      if (el && el.closest && el.closest("[data-no-close]")) {
+        // clicked/tapped inside a protected area -> do nothing
+        return;
+      }
+      // else close everything
+      setOrgDropdown(false);
+      setAboutOpen(false);
+      setCalendarOpen(false);
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    if (typeof window !== "undefined" && "PointerEvent" in window) {
+      // pointerdown is fast and handles touch & mouse; use capture to evaluate before clicks reach targets
+      document.addEventListener("pointerdown", handler, true);
+      return () => document.removeEventListener("pointerdown", handler, true);
+    } else {
+      // fallback for older browsers: click (not ideal for touch but safer than touchstart/mousedown mix)
+      document.addEventListener("click", handler, true);
+      return () => document.removeEventListener("click", handler, true);
+    }
   }, [setCalendarOpen]);
 
   const go = (path) => {
     setIsOpen(false);
     setAboutOpen(false);
     setOrgDropdown(false);
+    setCalendarOpen(false);
     navigate(path);
   };
 
+  // Toggle helpers that also close other dropdowns
+  const toggleOrg = (e) => {
+    if (e) e.stopPropagation();
+    setOrgDropdown((prev) => {
+      const next = !prev;
+      if (next) setAboutOpen(false);
+      return next;
+    });
+  };
+  const toggleAbout = (e) => {
+    if (e) e.stopPropagation();
+    setAboutOpen((prev) => {
+      const next = !prev;
+      if (next) setOrgDropdown(false);
+      return next;
+    });
+  };
+
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 backdrop-blur-lg border-b ${showNavbar ? "translate-y-0" : "-translate-y-full"} ${scrolled ? "bg-white/90 border-gray-200 shadow-md" : "bg-gradient-to-r from-blue-800/70 to-blue-600/60 border-white/20"}`}>
+    <nav
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 backdrop-blur-lg border-b ${
+        showNavbar ? "translate-y-0" : "-translate-y-full"
+      } ${scrolled ? "bg-white/90 border-gray-200 shadow-md" : "bg-gradient-to-r from-blue-800/70 to-blue-600/60 border-white/20"}`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -90,93 +122,107 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6 relative">
-
             {(location.pathname === "/history" || location.pathname === "/mission") && (
               <Link to="/" className={`flex items-center gap-2 font-medium transition ${scrolled ? "text-gray-700 hover:text-blue-700" : "text-white hover:text-blue-200"}`}>
-                <Home className="h-5 w-5" />
-                Home
+                <Home className="h-5 w-5" /> Home
               </Link>
             )}
 
-            {/* Organization - Desktop */}
-            <div ref={orgRef} className="relative">
+            {/* Organization - mark wrapper with data-no-close so inside taps don't close */}
+            <div ref={orgRef} data-no-close className="relative">
               <button
-                type="button"
-                onClick={() => setOrgDropdown((s) => !s)}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all ${scrolled ? "bg-gray-100 text-gray-800 hover:bg-gray-200" : "bg-white/20 text-white hover:bg-white/30"}`}
+                onClick={toggleOrg}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                  scrolled ? "bg-gray-100 text-gray-800 hover:bg-gray-200" : "bg-white/20 text-white hover:bg-white/30"
+                }`}
               >
                 <Building2 className="h-5 w-5" />
                 Organization
                 <ChevronDown className={`h-5 w-5 transition-transform ${orgDropdown ? "rotate-180" : ""}`} />
               </button>
+
               {orgDropdown && (
                 <div className="absolute left-0 top-full mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-200 animate-fadeIn z-50">
                   {["Org Sub 1", "Org Sub 2", "Org Sub 3"].map((org) => (
-                    <a key={org} href="#" className="block px-5 py-2 text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">{org}</a>
+                    <button key={org} onClick={() => setOrgDropdown(false)} className="block w-full text-left px-5 py-2 text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">
+                      {org}
+                    </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* About - Desktop */}
-            <div ref={aboutRef} className="relative">
+            {/* About - mark wrapper with data-no-close */}
+            <div ref={aboutRef} data-no-close className="relative">
               <button
-                type="button"
-                onClick={() => setAboutOpen((s) => !s)}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all ${scrolled ? "bg-gray-100 text-gray-800 hover:bg-gray-200" : "bg-white/20 text-white hover:bg-white/30"}`}
+                onClick={toggleAbout}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                  scrolled ? "bg-gray-100 text-gray-800 hover:bg-gray-200" : "bg-white/20 text-white hover:bg-white/30"
+                }`}
               >
-                <Info className="h-5 w-5" />
-                About
+                <Info className="h-5 w-5" /> About
                 <ChevronDown className={`h-5 w-5 transition-transform ${aboutOpen ? "rotate-180" : ""}`} />
               </button>
+
               {aboutOpen && (
                 <div className="absolute left-0 top-full mt-3 w-64 bg-white rounded-xl shadow-lg border border-gray-200 animate-fadeIn z-50">
-                  <button onClick={() => go("/history")} className="block px-5 py-2 text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">History of Cebu Eastern College</button>
-                  <button onClick={() => go("/mission")} className="block px-5 py-2 text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">Mission and Vision</button>
+                  <button onClick={() => go("/history")} className="block w-full text-left px-5 py-2 text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">History of Cebu Eastern College</button>
+                  <button onClick={() => go("/mission")} className="block w-full text-left px-5 py-2 text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">Mission and Vision</button>
                 </div>
               )}
             </div>
 
-            {/* Calendar - Desktop */}
-            <div className="relative">
+            {/* Calendar - wrapper marked with data-no-close */}
+            <div data-no-close className="relative">
               <button
                 ref={calendarButtonRef}
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setCalendarOpen((p) => !p); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCalendarOpen((p) => !p);
+                  setOrgDropdown(false);
+                  setAboutOpen(false);
+                }}
                 className={`flex items-center gap-2 font-medium transition ${scrolled ? "text-gray-700 hover:text-blue-700" : "text-white hover:text-blue-200"}`}
               >
-                <CalendarDays className="h-5 w-5" />
-                Calendar
+                <CalendarDays className="h-5 w-5" /> Calendar
               </button>
+
               {calendarOpen && (
-                <div ref={calendarRef} className="absolute left-1/2 top-full -translate-x-1/2 mt-2 w-[360px] max-w-[90vw] z-50">
-                  <EventCalendar newsEventsData={newsData} ref={calendarRef} />
+                <div ref={calendarRef} data-no-close className="absolute left-1/2 top-full -translate-x-1/2 mt-2 w-[360px] max-w-[90vw] z-50">
+                  <EventCalendar newsEventsData={newsData} />
                 </div>
               )}
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button (mark with data-no-close) */}
           <div className="md:hidden">
-            <button type="button" onClick={() => setIsOpen((s) => !s)} className={`transition text-3xl ${scrolled ? "text-gray-800 hover:text-blue-700" : "text-white hover:text-gray-200"}`}>
+            <button
+              data-no-close
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOpen((s) => !s);
+              }}
+              className={`transition text-3xl ${scrolled ? "text-gray-800 hover:text-blue-700" : "text-white hover:text-gray-200"}`}
+            >
               {isOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      <div className={`md:hidden transition-all duration-500 overflow-visible backdrop-blur-2xl bg-gradient-to-b from-white/95 via-blue-50/90 to-white/95 shadow-lg ${isOpen ? "max-h-[800px] opacity-100 py-4" : "max-h-0 opacity-0"}`}>
+      {/* Mobile Menu - mark whole area with data-no-close so interacting inside won't close */}
+      <div data-no-close className={`md:hidden transition-all duration-500 overflow-visible backdrop-blur-2xl bg-gradient-to-b from-white/95 via-blue-50/90 to-white/95 shadow-lg ${isOpen ? "max-h-[800px] opacity-100 py-4" : "max-h-0 opacity-0"}`}>
         <div className="space-y-3 px-4">
           {(location.pathname === "/history" || location.pathname === "/mission") && (
-            <button type="button" onClick={() => go("/")} className="flex items-center gap-2 px-4 py-3 text-gray-700 text-lg font-semibold hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">
+            <button onClick={() => go("/")} className="flex items-center gap-2 px-4 py-3 text-gray-700 text-lg font-semibold hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">
               <Home className="h-5 w-5" /> Home
             </button>
           )}
 
-          {/* Organization - Mobile */}
-          <div className="border-t border-gray-200 pt-2">
-            <button type="button" onClick={() => setOrgDropdown((s) => !s)} className="w-full flex justify-between items-center px-4 py-3 text-gray-800 font-semibold hover:text-blue-700 transition">
+          {/* Organization (mobile) */}
+          <div className="border-t border-gray-200 pt-2" data-no-close>
+            <button onClick={toggleOrg} className="w-full flex justify-between items-center px-4 py-3 text-gray-800 font-semibold hover:text-blue-700 transition">
               <span className="flex items-center gap-2"><Building2 className="h-5 w-5" /> Organization</span>
               <ChevronDown className={`h-5 w-5 transition-transform ${orgDropdown ? "rotate-180" : ""}`} />
             </button>
@@ -187,21 +233,28 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
             </div>
           </div>
 
-          {/* Calendar - Mobile */}
-          <div className="border-t border-gray-200 pt-2">
-            <button type="button" onClick={(e) => { e.stopPropagation(); setCalendarOpen((p) => !p); }} className="w-full flex items-center gap-2 text-left px-4 py-3 text-gray-800 font-semibold hover:text-blue-700 transition">
+          {/* Calendar (mobile) */}
+          <div className="border-t border-gray-200 pt-2 relative" data-no-close>
+            <button
+              ref={calendarButtonRef}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCalendarOpen((p) => !p);
+              }}
+              className="w-full flex items-center gap-2 text-left px-4 py-3 text-gray-800 font-semibold hover:text-blue-700 transition"
+            >
               <CalendarDays className="h-5 w-5" /> Calendar
             </button>
             {calendarOpen && (
-              <div className="px-4 mt-2">
-                <EventCalendar newsEventsData={newsData} ref={calendarRef} />
+              <div ref={calendarRef} className="px-4 mt-2">
+                <EventCalendar newsEventsData={newsData} />
               </div>
             )}
           </div>
 
-          {/* About - Mobile */}
-          <div className="border-t border-gray-200 pt-2 relative z-50">
-            <button type="button" onClick={() => setAboutOpen((s) => !s)} className="w-full flex justify-between items-center px-4 py-3 text-gray-800 font-semibold hover:text-blue-700 transition">
+          {/* About (mobile) */}
+          <div className="border-t border-gray-200 pt-2 relative z-50" data-no-close>
+            <button onClick={toggleAbout} className="w-full flex justify-between items-center px-4 py-3 text-gray-800 font-semibold hover:text-blue-700 transition">
               <span className="flex items-center gap-2"><Info className="h-5 w-5" /> About</span>
               <ChevronDown className={`h-5 w-5 transition-transform ${aboutOpen ? "rotate-180" : ""}`} />
             </button>

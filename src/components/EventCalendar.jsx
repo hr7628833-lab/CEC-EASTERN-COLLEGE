@@ -1,18 +1,42 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const EventCalendar = ({ newsEventsData }) => {
+const EventCalendar = ({ newsEventsData, setCalendarOpen }) => {
   const [today, setToday] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const calendarRef = useRef(null);
 
+  // ⏰ Keep "today" updated
   useEffect(() => {
     const interval = setInterval(() => setToday(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);
 
+  // ✅ Only close when clicked outside (not inside)
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!calendarRef.current) return;
+
+      // Prevent closing if clicking inside the calendar
+      if (calendarRef.current.contains(event.target)) return;
+
+      // ✅ Close only on true outside clicks
+      setCalendarOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, { passive: true });
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [setCalendarOpen]);
+
+  // ⬅️➡️ Month navigation
   const handlePrevMonth = (e) => {
-    e.stopPropagation(); // prevent Navbar outside click
+    e.stopPropagation();
     if (currentMonth === 0) {
       setCurrentMonth(11);
       setCurrentYear(currentYear - 1);
@@ -22,7 +46,7 @@ const EventCalendar = ({ newsEventsData }) => {
   };
 
   const handleNextMonth = (e) => {
-    e.stopPropagation(); // prevent Navbar outside click
+    e.stopPropagation();
     if (currentMonth === 11) {
       setCurrentMonth(0);
       setCurrentYear(currentYear + 1);
@@ -31,6 +55,7 @@ const EventCalendar = ({ newsEventsData }) => {
     }
   };
 
+  // 📅 Calendar logic
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const startDay = firstDayOfMonth.getDay();
@@ -50,7 +75,7 @@ const EventCalendar = ({ newsEventsData }) => {
   ];
 
   const handleDateClick = (date, e) => {
-    e.stopPropagation(); // prevent Navbar outside click
+    e.stopPropagation();
     const clickedDate = normalizeDate(date);
     const cardId = `post-${clickedDate.toISOString().slice(0, 10)}`;
     const postEl = document.getElementById(cardId);
@@ -59,21 +84,28 @@ const EventCalendar = ({ newsEventsData }) => {
 
   return (
     <div
-      onClick={(e) => e.stopPropagation()} // prevent outside click
-      className="w-[360px] max-h-[80vh] bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden flex flex-col z-50 border border-white/20"
+      ref={calendarRef}
+      onClick={(e) => e.stopPropagation()} // ⛔ Prevent outside click closing
+      className="w-[360px] max-h-[80vh] bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden flex flex-col z-50 border border-white/20"
     >
       {/* Header */}
       <div className="flex justify-between items-center px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md">
-        <button onClick={handlePrevMonth} className="p-2 rounded-full hover:bg-white/20 transition transform hover:scale-110">
+        <button
+          onClick={handlePrevMonth}
+          className="p-2 rounded-full hover:bg-white/20 transition transform hover:scale-110"
+        >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <h2 className="text-xl font-bold tracking-wide flex-1 text-center">
+        <h2 className="text-xl font-bold tracking-wide flex-1 text-center select-none">
           {new Date(currentYear, currentMonth).toLocaleString("default", {
             month: "long",
             year: "numeric",
           })}
         </h2>
-        <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-white/20 transition transform hover:scale-110">
+        <button
+          onClick={handleNextMonth}
+          className="p-2 rounded-full hover:bg-white/20 transition transform hover:scale-110"
+        >
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
@@ -94,7 +126,8 @@ const EventCalendar = ({ newsEventsData }) => {
           {[...Array(daysInMonth)].map((_, i) => {
             const date = new Date(currentYear, currentMonth, i + 1);
             const events = newsEventsData.filter(
-              (news) => normalizeDate(news.date).getTime() === normalizeDate(date).getTime()
+              (news) =>
+                normalizeDate(news.date).getTime() === normalizeDate(date).getTime()
             );
 
             return (

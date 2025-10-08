@@ -1,10 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, createContext, useContext } from "react";
 import { ChevronDown } from "lucide-react";
 
-export function Dropdown({ children }) {
-  const [open, setOpen] = useState(false);
+const DropdownContext = createContext();
 
-  // Enhance children by injecting props into Menu and Button
+export function DropdownProvider({ children }) {
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  return (
+    <DropdownContext.Provider value={{ activeDropdown, setActiveDropdown }}>
+      {children}
+    </DropdownContext.Provider>
+  );
+}
+
+export function Dropdown({ id, children }) {
+  const ref = useRef(null);
+  const { activeDropdown, setActiveDropdown } = useContext(DropdownContext);
+
+  const open = activeDropdown === id;
+
+  // ✅ Outside click close (mobile + desktop)
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!ref.current) return;
+      if (ref.current.contains(e.target)) return; // clicked inside
+      setActiveDropdown(null);
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [setActiveDropdown]);
+
   const enhancedChildren = React.Children.map(children, (child) => {
     if (!React.isValidElement(child)) return child;
 
@@ -15,38 +40,45 @@ export function Dropdown({ children }) {
     }
 
     if (typeName === "DropdownButton") {
-      // pass toggle for click
-      return React.cloneElement(child, { onClick: () => setOpen((v) => !v) });
+      return React.cloneElement(child, {
+        onClick: (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setActiveDropdown(open ? null : id);
+        },
+        open,
+      });
     }
 
     return child;
   });
 
   return (
-    <div
-      className="relative inline-block text-left font-[Helvetica,Arial,sans-serif]"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
+    <div ref={ref} className="relative inline-block text-left select-none">
       {enhancedChildren}
     </div>
   );
 }
 
-export function DropdownButton({ children, outline, onClick }) {
+export function DropdownButton({ children, outline, onClick, open }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={
-        "inline-flex items-center justify-center gap-x-2 rounded-md px-3 py-2 text-sm font-semibold shadow-sm transition " +
-        (outline
+      className={`inline-flex items-center justify-center gap-x-2 rounded-md px-3 py-2 text-sm font-semibold transition ${
+        outline
           ? "bg-transparent text-white ring-1 ring-inset ring-white/20 hover:bg-white/20"
-          : "bg-gray-800 text-white hover:bg-gray-700")
-      }
+          : open
+          ? "bg-gray-700 text-white"
+          : "bg-gray-800 text-white hover:bg-gray-700"
+      }`}
     >
       <span className="flex items-center gap-2">{children}</span>
-      <ChevronDown className="h-5 w-5 text-gray-400" />
+      <ChevronDown
+        className={`h-5 w-5 transition-transform ${
+          open ? "rotate-180 text-white" : "rotate-0 text-gray-400"
+        }`}
+      />
     </button>
   );
 }
@@ -55,10 +87,11 @@ DropdownButton.displayName = "DropdownButton";
 export function DropdownMenu({ children, open }) {
   return (
     <div
-      className={
-        "absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-white/10 focus:outline-none transition-all duration-150 " +
-        (open ? "opacity-100 translate-y-0 pointer-events-auto z-50" : "opacity-0 -translate-y-1 pointer-events-none")
-      }
+      className={`absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-white/10 focus:outline-none transform transition-all duration-150 ease-out z-50 ${
+        open
+          ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+          : "opacity-0 scale-95 -translate-y-1 pointer-events-none"
+      }`}
     >
       <div className="py-1">{children}</div>
     </div>
