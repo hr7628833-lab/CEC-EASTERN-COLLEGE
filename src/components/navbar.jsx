@@ -51,28 +51,22 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
     setIsOpen(false);
   }, [location.pathname, setCalendarOpen]);
 
-  // ---------- Unified outside-tap handler ----------
+  // Unified outside-tap handler
   useEffect(() => {
-    // Handler: if the tap/click is inside an element marked with [data-no-close], ignore it.
-    // Otherwise close all dropdowns.
     const handler = (event) => {
       const el = event.target instanceof Element ? event.target : null;
       if (el && el.closest && el.closest("[data-no-close]")) {
-        // clicked/tapped inside a protected area -> do nothing
         return;
       }
-      // else close everything
       setOrgDropdown(false);
       setAboutOpen(false);
       setCalendarOpen(false);
     };
 
     if (typeof window !== "undefined" && "PointerEvent" in window) {
-      // pointerdown is fast and handles touch & mouse; use capture to evaluate before clicks reach targets
       document.addEventListener("pointerdown", handler, true);
       return () => document.removeEventListener("pointerdown", handler, true);
     } else {
-      // fallback for older browsers: click (not ideal for touch but safer than touchstart/mousedown mix)
       document.addEventListener("click", handler, true);
       return () => document.removeEventListener("click", handler, true);
     }
@@ -86,7 +80,7 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
     navigate(path);
   };
 
-  // Toggle helpers that also close other dropdowns
+  // Toggle helpers
   const toggleOrg = (e) => {
     if (e) e.stopPropagation();
     setOrgDropdown((prev) => {
@@ -114,7 +108,7 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <img src={logo} alt="CEC Logo" className="h-12 w-12 rounded-full shadow-md border-2 border-white" />
+            <img src={logo} alt="CEC Logo" className="h-12 w-12 rounded-full shadow-md" />
             <span className={`text-lg sm:text-2xl font-extrabold tracking-wide ${scrolled ? "text-gray-800" : "text-white"}`}>
               Cebu Eastern College
             </span>
@@ -128,7 +122,7 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
               </Link>
             )}
 
-            {/* Organization - mark wrapper with data-no-close so inside taps don't close */}
+            {/* Organization */}
             <div ref={orgRef} data-no-close className="relative">
               <button
                 onClick={toggleOrg}
@@ -152,7 +146,7 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
               )}
             </div>
 
-            {/* About - mark wrapper with data-no-close */}
+            {/* About */}
             <div ref={aboutRef} data-no-close className="relative">
               <button
                 onClick={toggleAbout}
@@ -166,13 +160,17 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
 
               {aboutOpen && (
                 <div className="absolute left-0 top-full mt-3 w-64 bg-white rounded-xl shadow-lg border border-gray-200 animate-fadeIn z-50">
-                  <button onClick={() => go("/history")} className="block w-full text-left px-5 py-2 text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">History of Cebu Eastern College</button>
-                  <button onClick={() => go("/mission")} className="block w-full text-left px-5 py-2 text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">Mission and Vision</button>
+                  <button onClick={() => go("/history")} className="block w-full text-left px-5 py-2 text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">
+                    History of Cebu Eastern College
+                  </button>
+                  <button onClick={() => go("/mission")} className="block w-full text-left px-5 py-2 text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-700 rounded-lg transition">
+                    Mission and Vision
+                  </button>
                 </div>
               )}
             </div>
 
-            {/* Calendar - wrapper marked with data-no-close */}
+            {/* Calendar */}
             <div data-no-close className="relative">
               <button
                 ref={calendarButtonRef}
@@ -195,7 +193,7 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
             </div>
           </div>
 
-          {/* Mobile Menu Button (mark with data-no-close) */}
+          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button
               data-no-close
@@ -211,7 +209,7 @@ function Navbar({ newsData, newsDetailOpen, calendarOpen, setCalendarOpen }) {
         </div>
       </div>
 
-      {/* Mobile Menu - mark whole area with data-no-close so interacting inside won't close */}
+      {/* Mobile Menu */}
       <div data-no-close className={`md:hidden transition-all duration-500 overflow-visible backdrop-blur-2xl bg-gradient-to-b from-white/95 via-blue-50/90 to-white/95 shadow-lg ${isOpen ? "max-h-[800px] opacity-100 py-4" : "max-h-0 opacity-0"}`}>
         <div className="space-y-3 px-4">
           {(location.pathname === "/history" || location.pathname === "/mission") && (
